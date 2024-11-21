@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     char **args;
     int status;
 
+    // TODO: Show directory
     do
     {
         printf(">>");
