@@ -3,3 +3,5 @@ read&split
 execute/builtin
 execute/execute
 execute/nonbuiltin
+*.o
+BestTerminal
