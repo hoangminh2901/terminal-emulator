@@ -1,3 +1,6 @@
+#include "headers/builtin.h"
+#include "headers/non-builtin.h"
+
 // TODO: Combine builtin and non-builtin functions
 
 // Check if the command is a builtin function

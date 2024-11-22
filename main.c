@@ -1,6 +1,6 @@
 #include <stddef.h>
 #include "read&split.c"
-#include "execute/execute.c"
+#include "headers/execute.h"
 
 int main(int argc, char *argv[])
 {
