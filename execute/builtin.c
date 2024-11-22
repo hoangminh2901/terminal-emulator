@@ -4,8 +4,3 @@
 // cd changes the current directory to the given directory
 // ls lists all the files in the current directory
 // exit exits the shell
-
-int main(int argc, char *argv[]) {
-    // Test here
-    return 0;
-}

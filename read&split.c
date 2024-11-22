@@ -1,8 +1,14 @@
-char *read_line(void) {}
+#include <stdio.h>
+#include <stdlib.h>
 
-char split_line(char *line) {}
+char *read_line(void) {
+    char *line = NULL;
+    size_t bufsize = 0;
+    getline(&line, &bufsize, stdin);
+    return line;
+}
 
-int main(int argc, char *argv[]) {
-    // Test here
+char **split_line(char *line) {
+    // TODO: Split the line into arguments
     return 0;
 }

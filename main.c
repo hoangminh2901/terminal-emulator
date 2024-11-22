@@ -1,8 +1,6 @@
 #include <stddef.h>
 #include "read&split.c"
-#include "execute/builtin.c"
-#include "execute/nonbuiltin.c"
-
+#include "execute/execute.c"
 
 int main(int argc, char *argv[])
 {
@@ -13,7 +11,7 @@ int main(int argc, char *argv[])
     // TODO: Show directory
     do
     {
-        printf(">>");
+        printf(">> ");
         line = read_line();
         args = split_line(line);
         status = execute(args);
