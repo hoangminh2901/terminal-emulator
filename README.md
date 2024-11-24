@@ -1,6 +1,6 @@
 Loop:
-  - [ ] Read
-  - [ ] Parse
+  - [x] Read
+  - [x] Parse
   - Execute:
     - [ ] Builtin
     - [ ] Other processes
