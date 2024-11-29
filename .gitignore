@@ -5,3 +5,4 @@ execute/execute
 execute/nonbuiltin
 *.o
 terminal
+*.out
