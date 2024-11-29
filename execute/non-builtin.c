@@ -98,5 +98,4 @@ int main(int argc, char *argv[])
         // Execute non-builtin command
         launch(args);
     }
-    return 0;
 }
