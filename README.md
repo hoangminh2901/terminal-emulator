@@ -5,5 +5,5 @@ Loop:
     - [x] Builtin
     - [x] Other processes
 
-Run `make` to build and `make clean` to clean up.
+Run `make clean` to clean up and `make` to build.
 Then run `./terminal` to start the terminal emulator.
