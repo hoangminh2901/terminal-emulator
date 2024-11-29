@@ -4,6 +4,7 @@
 #include "headers/read.h"
 #include "headers/split.h"
 #include "headers/execute.h"
+#include <linux/limits.h>
 
 int main(int argc, char *argv[])
 {
@@ -11,10 +12,11 @@ int main(int argc, char *argv[])
     char **args;
     int num_tokens;
     int status;
-    char *cwd = getcwd(NULL, 0);
+    char cwd[PATH_MAX];
 
     do
     {
+        getcwd(cwd, sizeof(cwd));
         printf("%s>> ", cwd);
         line = read_line();
         args = split_line(line, &num_tokens);
