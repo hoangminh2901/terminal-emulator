@@ -9,14 +9,29 @@
 #define MAX_COMMAND_LENGTH 1024
 #define MAX_ARG_COUNT 64
 
-// TODO: Use fork & execvp to execute a program
-int launch(char **args)
-{
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
+
+int launch(char **args) {
     int pid;
     int status;
+    int background = 0;
+
+    // Check if last argument is &
+    for (int i = 0; args[i] != NULL; i++) {
+        if (args[i + 1] == NULL && strcmp(args[i], "&") == 0) {
+            background = 1;
+            args[i] = NULL;  // Remove the & from arguments
+            break;
+        }
+    }
 
     // child process
     pid = fork();
+
     if (pid < 0)
     {
         // print("fail to folk\n");
@@ -34,15 +49,18 @@ int launch(char **args)
     }
     else
     { // wait for the child
+        if (!background) {
         do
-        {
-
-            if (waitpid(pid, &status, WUNTRACED) == -1)
             {
-                perror("waitpid");
-                exit(EXIT_FAILURE);
-            }
-        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+                if (waitpid(pid, &status, WUNTRACED) == -1)
+                {
+                    perror("waitpid");
+                    exit(EXIT_FAILURE);
+                }
+            } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+        } else {
+            printf("[%d] started in background\n", pid);
+        }
     }
     return 0;
 }
@@ -92,10 +110,53 @@ int main(int argc, char *argv[])
             break;
         }
 
-        // Parse the command into arguments
-        parse_command(command_line, args);
+        char *cmd = command_line;
+        char *start = cmd;
+        int parse_len = 0;
 
-        // Execute non-builtin command
-        launch(args);
+        // Skip leading whitespace
+        while (*start == ' ' || *start == '\t') start++;
+        cmd = start;
+
+        while (*cmd != '\0') {
+            if (*cmd == '&') {
+                // Get length excluding trailing whitespace
+                char *end = cmd - 1;
+                while (end > start && (*end == ' ' || *end == '\t')) end--;
+                parse_len = end - start + 1;
+
+                // Copy command including & if not at end
+                char command[1024];
+                strncpy(command, start, parse_len);
+                command[parse_len] = '\0';
+
+                // Add & if not the last command
+                if (*(cmd + 1) != '\0') {
+                    strcat(command, " &");
+                }
+
+                parse_command(command, args);
+                launch(args);
+
+                // Move to start of next command
+                start = cmd + 1;
+                while (*start == ' ' || *start == '\t') start++;
+            }
+            cmd++;
+        }
+
+        // Handle last command if it exists
+        if (*start != '\0') {
+            // Remove trailing whitespace
+            char *end = cmd - 1;
+            while (end > start && (*end == ' ' || *end == '\t')) end--;
+            parse_len = end - start + 1;
+
+            char command[1024]; // Using fixed size instead of undefined MAX_COMMAND_LENGTH
+            strncpy(command, start, parse_len);
+            command[parse_len] = '\0';
+            parse_command(command, args);
+            launch(args);
+        }
     }
 }
