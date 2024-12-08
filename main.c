@@ -6,24 +6,28 @@
 #include "headers/execute.h"
 #include <linux/limits.h>
 
-int main(int argc, char *argv[])
+int main()
 {
     char *line;
     char **args;
     int num_tokens;
-    int status;
+    int status = 1;
     char cwd[PATH_MAX];
 
-    do
+    while (status)
     {
         getcwd(cwd, sizeof(cwd));
         printf("%s>> ", cwd);
         line = read_line();
+        if (line == NULL || line[0] == '\0')
+        {
+            continue;
+        }
         args = split_line(line, &num_tokens);
         status = execute(args);
 
         free(line);
         free(args);
-    } while (status);
+    }
     return 0;
 }

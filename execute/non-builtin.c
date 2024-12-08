@@ -109,7 +109,7 @@ int launch(char **args)
     int pid;
     int status;
     int background = 0;
-    int *signals[] = {SIGSEGV, SIGFPE, SIGILL, SIGBUS, SIGXCPU, SIGXFSZ, SIGPROF, SIGSYS};
+    int signals[] = {SIGSEGV, SIGFPE, SIGILL, SIGBUS, SIGXCPU, SIGXFSZ, SIGPROF, SIGSYS};
     int signal_count = sizeof(signals) / sizeof(signals[0]);
     char *signal_names[] = {"segmentation fault", "floating point exception", "illegal instruction", "bus error", "CPU time limit exceeded", "file size limit exceeded", "real-time limit exceeded", "bad system call"};
 
@@ -194,7 +194,7 @@ void parse_command(char *command, char **args)
     args[i] = NULL; // terminating the array
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     // Test here
     char command_line[MAX_COMMAND_LENGTH];
