@@ -10,6 +10,100 @@
 #define MAX_COMMAND_LENGTH 1024
 #define MAX_ARG_COUNT 64
 
+int execute_pipeline(char **args) {
+    int i = 0;
+    int pipe_count = 0;
+
+    // Count pipes
+    while (args[i] != NULL) {
+        if (strcmp(args[i], "|") == 0) {
+            pipe_count++;
+        }
+        i++;
+    }
+
+    if (pipe_count == 0) {
+        return launch(args);
+    }
+
+    int cmd_count = pipe_count + 1;
+    int pipes[pipe_count][2];
+    char **cmd_args[cmd_count];
+    int cmd_index = 0;
+    int arg_index = 0;
+
+    // Split commands at pipe symbols
+    cmd_args[cmd_index] = malloc(sizeof(char*) * MAX_ARG_COUNT);
+    i = 0;
+    while (args[i] != NULL) {
+        if (strcmp(args[i], "|") == 0) {
+            cmd_args[cmd_index][arg_index] = NULL;
+            cmd_index++;
+            cmd_args[cmd_index] = malloc(sizeof(char*) * MAX_ARG_COUNT);
+            arg_index = 0;
+        } else {
+            cmd_args[cmd_index][arg_index++] = args[i];
+        }
+        i++;
+    }
+    cmd_args[cmd_index][arg_index] = NULL;
+
+    // Create pipes
+    for (i = 0; i < pipe_count; i++) {
+        if (pipe(pipes[i]) < 0) {
+            perror("pipe");
+            return 1;
+        }
+    }
+
+    // Execute commands
+    for (i = 0; i <= pipe_count; i++) {
+        pid_t pid = fork();
+
+        if (pid == 0) {
+            // First command
+            if (i == 0) {
+                dup2(pipes[0][1], STDOUT_FILENO);
+            }
+            // Last command
+            else if (i == pipe_count) {
+                dup2(pipes[i-1][0], STDIN_FILENO);
+            }
+            // Middle commands
+            else {
+                dup2(pipes[i-1][0], STDIN_FILENO);
+                dup2(pipes[i][1], STDOUT_FILENO);
+            }
+
+            // Close all pipe fds
+            for (int j = 0; j < pipe_count; j++) {
+                close(pipes[j][0]);
+                close(pipes[j][1]);
+            }
+
+            launch(cmd_args[i]);
+            exit(EXIT_FAILURE);
+        }
+    }
+    // Parent closes all pipe fds
+    for (i = 0; i < pipe_count; i++) {
+        close(pipes[i][0]);
+        close(pipes[i][1]);
+    }
+
+    // Wait for all children
+    for (i = 0; i <= pipe_count; i++) {
+        wait(NULL);
+    }
+
+    // Free allocated memory
+    for (i = 0; i <= pipe_count; i++) {
+        free(cmd_args[i]);
+    }
+
+    return 1;
+}
+
 int launch(char **args)
 {
     int pid;

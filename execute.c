@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+
+
 // Check if the command is a builtin function
 // If it is, execute it
 // If it is not, execute it as a non-builtin function
@@ -13,6 +15,14 @@ int execute(char **args)
     if (args[0] == NULL)
     {
         return 1;
+    }
+
+    int i = 0;
+    while (args[i] != NULL) {
+        if (strcmp(args[i], "|") == 0) {
+            return execute_pipeline(args);
+        }
+        i++;
     }
 
     char *builtin_str[] = {
