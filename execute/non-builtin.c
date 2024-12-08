@@ -5,20 +5,27 @@
 #include <unistd.h>   // fork, execvp
 #include <sys/wait.h> // waipid
 #include <errno.h>    //errno, perror
+#include <signal.h>
 
 #define MAX_COMMAND_LENGTH 1024
 #define MAX_ARG_COUNT 64
 
-int launch(char **args) {
+int launch(char **args)
+{
     int pid;
     int status;
     int background = 0;
+    int *signals[] = {SIGSEGV, SIGFPE, SIGILL, SIGBUS, SIGXCPU, SIGXFSZ, SIGPROF, SIGSYS};
+    int signal_count = sizeof(signals) / sizeof(signals[0]);
+    char *signal_names[] = {"segmentation fault", "floating point exception", "illegal instruction", "bus error", "CPU time limit exceeded", "file size limit exceeded", "real-time limit exceeded", "bad system call"};
 
     // Check if last argument is &
-    for (int i = 0; args[i] != NULL; i++) {
-        if (args[i + 1] == NULL && strcmp(args[i], "&") == 0) {
+    for (int i = 0; args[i] != NULL; i++)
+    {
+        if (args[i + 1] == NULL && strcmp(args[i], "&") == 0)
+        {
             background = 1;
-            args[i] = NULL;  // Remove the & from arguments
+            args[i] = NULL; // Remove the & from arguments
             break;
         }
     }
@@ -34,7 +41,6 @@ int launch(char **args) {
     }
     else if (pid == 0)
     {
-
         execvp(args[0], args); // execute the command
         // printf("fail to execvp\n");
         perror("execvp");
@@ -43,8 +49,9 @@ int launch(char **args) {
     }
     else
     { // wait for the child
-        if (!background) {
-        do
+        if (!background)
+        {
+            do
             {
                 if (waitpid(pid, &status, WUNTRACED) == -1)
                 {
@@ -52,11 +59,29 @@ int launch(char **args) {
                     exit(EXIT_FAILURE);
                 }
             } while (!WIFEXITED(status) && !WIFSIGNALED(status));
-        } else {
+
+            if (WIFSIGNALED(status))
+            {
+                for (int i = 0; i < signal_count; i++)
+                {
+                    if (WTERMSIG(status) == signals[i])
+                    {
+                        printf("Terminated by %s\n", signal_names[i]);
+                        break;
+                    }
+                    if (i == signal_count - 1)
+                    {
+                        printf("Terminated by unknown signal\n");
+                    }
+                }
+            }
+        }
+        else
+        {
             printf("[%d] started in background\n", pid);
         }
     }
-    return 0;
+    return 1;
 }
 
 // parse the input line into arguments
@@ -109,14 +134,18 @@ int main(int argc, char *argv[])
         int parse_len = 0;
 
         // Skip leading whitespace
-        while (*start == ' ' || *start == '\t') start++;
+        while (*start == ' ' || *start == '\t')
+            start++;
         cmd = start;
 
-        while (*cmd != '\0') {
-            if (*cmd == '&') {
+        while (*cmd != '\0')
+        {
+            if (*cmd == '&')
+            {
                 // Get length excluding trailing whitespace
                 char *end = cmd - 1;
-                while (end > start && (*end == ' ' || *end == '\t')) end--;
+                while (end > start && (*end == ' ' || *end == '\t'))
+                    end--;
                 parse_len = end - start + 1;
 
                 // Copy command including & if not at end
@@ -125,7 +154,8 @@ int main(int argc, char *argv[])
                 command[parse_len] = '\0';
 
                 // Add & if not the last command
-                if (*(cmd + 1) != '\0') {
+                if (*(cmd + 1) != '\0')
+                {
                     strcat(command, " &");
                 }
 
@@ -134,16 +164,19 @@ int main(int argc, char *argv[])
 
                 // Move to start of next command
                 start = cmd + 1;
-                while (*start == ' ' || *start == '\t') start++;
+                while (*start == ' ' || *start == '\t')
+                    start++;
             }
             cmd++;
         }
 
         // Handle last command if it exists
-        if (*start != '\0') {
+        if (*start != '\0')
+        {
             // Remove trailing whitespace
             char *end = cmd - 1;
-            while (end > start && (*end == ' ' || *end == '\t')) end--;
+            while (end > start && (*end == ' ' || *end == '\t'))
+                end--;
             parse_len = end - start + 1;
 
             char command[1024]; // Using fixed size instead of undefined MAX_COMMAND_LENGTH

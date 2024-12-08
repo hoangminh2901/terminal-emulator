@@ -6,3 +6,4 @@ execute/nonbuiltin
 *.o
 terminal
 *.out
+test/
