@@ -5,10 +5,8 @@
 #include "headers/read.h"
 #include "headers/split.h"
 #include "headers/execute.h"
+#include <linux/limits.h>
 
-<<<<<<< Updated upstream
-int main(int argc, char *argv[])
-=======
 // Function to execute commands based on operators like ;, &&, ||
 int execute_commands(char **commands, int num_tokens)
 {
@@ -42,27 +40,22 @@ int execute_commands(char **commands, int num_tokens)
 }
 
 int main()
->>>>>>> Stashed changes
 {
     char *line;
     char **tokens;
     int num_tokens;
-    int status;
-    char *cwd = getcwd(NULL, 0);
+    int status = 1;
+    char cwd[PATH_MAX];
 
-    do
+    while (status)
     {
+        getcwd(cwd, sizeof(cwd));
         printf("%s>> ", cwd);
         line = read_line();
-<<<<<<< Updated upstream
-        args = split_line(line, &num_tokens);
-        status = execute(args);
-=======
         if (line == NULL || line[0] == '\0')
         {
             continue;
         }
->>>>>>> Stashed changes
 
         // Split the line based on space, semicolon, &&, and ||
         tokens = split_line(line, &num_tokens);
@@ -72,12 +65,7 @@ int main()
 
         // Clean up
         free(line);
-<<<<<<< Updated upstream
-        free(args);
-    } while (status);
-=======
         free(tokens);
     }
->>>>>>> Stashed changes
     return 0;
 }
