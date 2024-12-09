@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "headers/split.h"
 
+// Function to split line into tokens, considering ;, &&, || as delimiters
 char **split_line(char *line, int *num_tokens)
 {
     int max_tokens = strlen(line) / 2 + 1;
@@ -13,6 +14,7 @@ char **split_line(char *line, int *num_tokens)
     char *current = line;
     bool in_quotes = false;
     char quote_char = '\0';
+    char *token_start = NULL;
 
     while (*current)
     {
@@ -24,27 +26,63 @@ char **split_line(char *line, int *num_tokens)
         if (!*current)
             break;
 
-        char *token_start = current;
-
-        //Check if the token is a quoted string
-        while (*current)
+        // Check if the token is a quoted string
+        if (!in_quotes)
         {
-            if (!in_quotes)
+            if (*current == '"' || *current == '\'')
             {
-                if (*current == '"' || *current == '\'')
+                in_quotes = true;
+                quote_char = *current;
+                current++;
+                token_start = current;
+                continue;
+            }
+            else if (*current == ';' || *current == '&' || *current == '|')
+            {
+                // Handle logical operators and semicolons
+                if (*current == '&' && *(current + 1) == '&')
                 {
-                    in_quotes = true;
-                    quote_char = *current;
+                    tokens[*num_tokens] = malloc(3 * sizeof(char));
+                    strncpy(tokens[*num_tokens], "&&", 3);
+                    *num_tokens += 1;
+                    current += 2;
+                    continue;
                 }
-                else if (*current == ' ' || *current == '\t')
-                    break;
+                else if (*current == '|' && *(current + 1) == '|')
+                {
+                    tokens[*num_tokens] = malloc(3 * sizeof(char));
+                    strncpy(tokens[*num_tokens], "||", 3);
+                    *num_tokens += 1;
+                    current += 2;
+                    continue;
+                }
+                else if (*current == ';')
+                {
+                    tokens[*num_tokens] = malloc(2 * sizeof(char));
+                    strncpy(tokens[*num_tokens], ";", 2);
+                    *num_tokens += 1;
+                    current++;
+                    continue;
+                }
             }
-            else
+            else if (*current == ' ' || *current == '\t')
             {
-                if (*current == quote_char)
-                    in_quotes = false;
+                break;
             }
-            current++;
+        }
+        else
+        {
+            if (*current == quote_char)
+                in_quotes = false;
+        }
+
+        if (!in_quotes)
+        {
+            token_start = current;
+            while (*current && (*current != ';' && *current != '&' && *current != '|'))
+            {
+                current++;
+            }
         }
 
         int token_len = current - token_start;
@@ -59,18 +97,4 @@ char **split_line(char *line, int *num_tokens)
     }
 
     return tokens;
-}
-
-int main(int argc, char *argv[])
-{
-    char line[] = "Hello, bro! 'Hope this skibidi'";
-    int num_tokens;
-    char **tokens = split_line(line, &num_tokens);
-    for (int i = 0; i < num_tokens; i++)
-    {
-        printf("Token %d: %s\n", i, tokens[i]);
-        free(tokens[i]);
-    }
-
-    return 0;
 }
