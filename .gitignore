@@ -4,4 +4,4 @@ execute/builtin
 execute/execute
 execute/nonbuiltin
 *.o
-BestTerminal
+test/
